@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="table.css">
+</head>
+
+<body>
+    <div class="pt-5 pb-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1 class="">Latency Table</h1>
+                    <h6 class="" id="timeInstance">Last Updated: Today, 8:30 AM</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="py-0">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr id="fillerHeader">
+                                    <th scope="col" contenteditable="true">FROM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fillerBody">
+                                
+                            </tbody>
+                        </table>
+                        <br><br><br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="test"></div>
+    <script
+  src="https://code.jquery.com/jquery-3.4.1.js"
+  integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+  crossorigin="anonymous"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous" style=""></script>
+    
+</body>
+<script>
+    
+    //var token = window.location.hash.slice(1).split('&')[0];
+    //var url = window.location.href;
+    //var urlArr = url.split('&token=');
+    //var tokenArr = urlArr[1].split('&timeStamp=');
+
+    var token = "";
+    var timeStamp = "";
+    var hrs = "";
+
+    // var token1 = "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NTFmMDg2NDE3YTU2ZTNjZGMwMjI2ZGU1ZDY2ZWU0Zjk3ZDEzNDMiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE1ODIxNTY3MTUsImlhdCI6MTU4MjE1MzExNSwiaXNzIjoic2FwLWlpZGMtY2RlQGFwcHNwb3QuZ3NlcnZpY2VhY2NvdW50LmNvbSIsInN1YiI6InNhcC1paWRjLWNkZUBhcHBzcG90LmdzZXJ2aWNlYWNjb3VudC5jb20iLCJhdWQiOiJodHRwczpcL1wvZGF0YXN0b3JlLmdvb2dsZWFwaXMuY29tXC8ifQ.yUHLmzhumfHoIyiwInQBLFds3T6YesPpJ-sPz6w9iKP8gT1CNFOrSn5jHyde75V5azx-GeZchu93g8IZMcLfffSguU4JsXkpq4zQ2wRf-X9D2zbzn7kLpXHVxffvYDNUsQtjTAH88knGXn7OUIOI0Ki24hI3l9ZeTgK3ZspBEZ3BL9RnRjBqBncMlptF4N--yj_Hl55GcvrmT_QKjkoEotRo_Y8YQaYW2xyJp44lYlhII4DosP9X4AIPTHrTCTEarCz_stCQZH-ISiDLcOB7oGsD02Of0tFRGko2WG1w-2s3Davw7RY3JEiHCdZauPeo0sUWS692-rZbgxHss9WjsA"
+    // var crTime = "2020-02-19_20:25:18"
+    // var ftchTime= "12:00PM"
+
+    // var flagValue = false;
+    // var latArray = [];
+    var outputData = [];
+
+
+    function populate(tokenVal,currentTime,fetchedTime,flag,latArr) {
+        timeStamp = currentTime;
+        token = tokenVal;
+        hrs = fetchedTime;
+        flagValue = flag;
+        latArray = latArr;
+
+
+        
+        if (flagValue) {
+            var rowLocation2 = {
+                "identifier": "",
+                "location":"",
+                "provider":"Current Location",
+                "source":"",
+            };
+            outputData.push(rowLocation2);
+        }
+
+        testing();
+    }
+    
+    var referenceData = [];
+    var responseTime;
+
+    function testing() {
+        ajaxCall("Select * from DC_Location where project = 'nonRS'", function(result){
+                referenceData = result.batch.entityResults;
+                result.batch.entityResults.forEach(item => {
+                    var rowLocation = {
+                        "identifier": item.entity.key.path[0].name,
+                        "location":item.entity.key.path[0].name,
+                        "provider":item.entity.properties.cloud_provider.stringValue,
+                        "source":item.entity.properties.public_ip.stringValue,
+                    };
+                    outputData.push(rowLocation);
+                });
+                memorizeData();
+                pneumonicCalls();
+            })
+    }  
+        
+    //});
+
+    function pneumonicCalls(){
+        var totalCalls = 0;
+        if (flagValue) {
+            totalCalls = (outputData.length-1)*(outputData.length-1) - (outputData.length-1); // -1 is maintaing the static current location row
+            latArray = latArray.map(function(each_element){
+                                    return Number(each_element.toFixed(2));
+                                    });
+            outputData[0]["destinations"] = latArray; //(parseFloat(latArray).toFixed(2);
+        } else {
+            totalCalls = outputData.length*outputData.length - outputData.length;
+        }
+        
+        var currentCallCount = 0;
+
+        outputData.forEach(function(item, key){
+            // var nw = new Date();
+            // var mnth = nw.getMonth() > 8 ? nw.getMonth()+1 : "0"+(nw.getMonth()+1);
+            // var dateF = nw.getFullYear()+'-'+mnth+'-'+nw.getDate()+' '+nw.getHours()+':'+nw.getMinutes()+':'+nw.getSeconds();
+            //var dateF = window.location.hash.slice(1).split('&')[1];
+            var dateF = timeStamp;
+            if (key == 0 && flagValue == true) {
+                
+            } else {
+                item.destinations.forEach(function(n){
+                    if( item.source == n.ip){
+                        n.average = '0';
+                    }
+                    else{
+                        var query = "Select * from DC_DC_Latency where Timestamp < '"+dateF+"' AND Source_IP = '"+item.source+"' AND Destination_IP = '"+n.ip+"' ORDER BY Timestamp DESC";
+                        ajaxCall(query, function(result){
+                            if(result.batch.entityResults){
+                                n.average = (parseFloat(result.batch.entityResults[0].entity.properties.RTT_Avg.stringValue)/2).toFixed(2);
+                                responseTime = result.batch.entityResults[0].entity.properties.Timestamp.stringValue;
+                            } 
+                            else
+                                n.average = '0';
+                            currentCallCount++;
+                            if(currentCallCount == totalCalls){
+                                //console.log("All Callse COmpleted");
+                                renderData();
+                            }
+                        });
+                    }
+                
+                });
+            }
+            
+        });
+
+        
+    }
+
+    function memorizeData(){
+        outputData.forEach(function(item){
+            var destinations = [];
+            referenceData.forEach(function(k){
+                var l = {
+                    "identifier":k.entity.key.path[0].name,
+                    "ip":k.entity.properties.public_ip.stringValue
+                };
+                destinations.push(l);
+            });
+            item.destinations = destinations;
+        });
+    }
+
+    function ajaxCall(query, callback){
+        var body = {
+                    "gqlQuery": {
+                    "queryString": query,
+                    "allowLiterals": true
+                    }
+                };
+        $.ajax({
+            url: "https://datastore.googleapis.com/v1/projects/sap-iidc-cde:runQuery",
+            type:'POST',
+            data : JSON.stringify(body),
+            headers: {
+                'Authorization': token,
+                'Content-Type': 'application/json'
+            },
+            success: callback
+        });
+    }
+
+
+    function renderData(){
+        outputData.forEach(function(item, key){
+            var innerHTML = "";
+            var innerHeader = "";
+            console.log(flagValue);
+            if (key == 0 && flagValue == true) {
+                innerHTML = '<tr> \n\
+                                    <th scope="col" style="" class="text-left">\n\
+                                        <h6 class="text-dark font-weight-bold my-xl-0">'+ item.provider +'</h6>\n\
+                                        <h6 class="text-muted font-weight-lighter my-xl-0">'+ item.location +'</h6>\n\
+                                    </th>';
+                                item.destinations.forEach(function(res){
+                                    var cls = (res < 20) ? "primary" : (res < 100) ? "secondary" : "warning";
+                                                          
+                                    var bgColor = (res < 20) ? "#44AF69" : (res < 100) ? "#FFAB0B" : "#F74E66";
+                                    var rnd = res;
+                                    var row = '<td class="text-center" style="background:'+bgColor+' !important;">\n\
+                                                    <p class=" text-white font-weight-bold my-xl-0">'+rnd+'</p>\n\
+                                                    <p class="text-light my-xl-0">ms</p>\n\
+                                                </td>';
+                                                innerHTML += row;
+                                });
+                                innerHTML += "</tr>";;
+            } else {
+                innerHeader = '<th scope="col" class="text-center">\n\
+                                        <h6 class="text-dark font-weight-bold my-xl-0">'+ item.provider +'</h6>\n\
+                                        <h6 class="text-muted font-weight-lighter my-xl-0">'+ item.location +'</h6>\n\
+                                    </th>';
+                innerHTML = '<tr> \n\
+                                    <th scope="col" style="" class="text-left">\n\
+                                        <h6 class="text-dark font-weight-bold my-xl-0">'+ item.provider +'</h6>\n\
+                                        <h6 class="text-muted font-weight-lighter my-xl-0">'+ item.location +'</h6>\n\
+                                    </th>';
+                                item.destinations.forEach(function(res){
+                                    var cls = (res.average < 20) ? "primary" : (res.average < 100) ? "secondary" : "warning";
+                                                          
+                                    var bgColor = (res.average < 20) ? "#44AF69" : (res.average < 100) ? "#FFAB0B" : "#F74E66";
+                                    var rnd = res.average == 0 ? '-' : res.average;
+                                    var row = '<td class="text-center" style="background:'+bgColor+' !important;">\n\
+                                                    <p class=" text-white font-weight-bold my-xl-0">'+rnd+'</p>\n\
+                                                    <p class="text-light my-xl-0">ms</p>\n\
+                                                </td>';
+                                                innerHTML += row;
+                                });
+                                innerHTML += "</tr>";;
+            }
+            $("#fillerBody").append(innerHTML);
+            $("#fillerHeader").append(innerHeader);
+            //var dateF = '2020-01-14 23:09:29';
+            var dt = new Date(responseTime);
+            //var mnth = nw.getMonth() > 8 ? nw.getMonth()+1 : "0"+(nw.getMonth()+1);
+            //var min = dt.getMinutes() > 9 ? dt.getMinutes() : "0"+dt.getMinutes();
+            //var hrs = dt.getHours() > 11 ? (dt.getHours() - 12)+':'+min+' PM' : dt.getHours()+':'+min+' AM';
+            $("#timeInstance").html("Last Updated: Today, "+hrs);
+        });
+        
+    }
+
+   // populate(token1, crTime, ftchTime, true, [20,20,20,20,20,4,20,100])
+
+
+    
+</script>
+</html>
